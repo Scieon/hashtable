@@ -20,25 +20,99 @@ public class test3 {
 		//----------------------------------------------------------------------------
 
 
-		FlexHash h1 = new FlexHash();
-		
+		long startTime,endTime,duration;
+
+		startTime = System.nanoTime();
+
+		FlexHash h1 = new FlexHash(101 , 'N',  'Q');
 		int count = 0;
-		
+
+		System.out.println("Text File 1 starting with table of size 101");
 		while(in.hasNext()){
 			String word = in.next();
-			//System.out.println(word);
+
 			count++;
-			//System.out.println(count);
 			h1.put(word, word);
-		
-	
-//			int code = h1.hash(word);
-//			int hashcode = h1.hashfun(word);
-//		
-	}
+			if(count == 1000 || count == 3000 || count == 5000 || count == 100000 || count == 50000
+					|| count == 100000 || count == 150000 || count == 200000){
+				System.out.println("Added first " + count + " Strings.");
+				h1.printHashtableStatistics();
+			}
+
+
+
+		}
+		System.out.println("Added all strings in textfile.");
 		h1.printHashtableStatistics();
+
+		endTime = System.nanoTime();
+
+		duration = (endTime - startTime)/1000000;
+		System.out.println("Time taken to add all strings: " + duration + " miliseconds.\n");
+
+
+		System.out.println("Enter any key to continue.");
+		Scanner kb = new Scanner(System.in);
+		kb.next();
+
 		
+		//--------------------------------------------------------------------------------------------------
+		startTime = System.nanoTime();
+		try{
+			in = new Scanner(new FileInputStream("hash_test_file1.txt"));
+		}
+
+		catch(FileNotFoundException e){
+			System.out.println("Error");
+			System.exit(0);
+		}
+
+		count = 0;
+		while(in.hasNext()){
+
+			if(count < 10000){
+				System.out.println("Removed " + h1.remove(in.next()));
+
+			}
+			else
+				System.out.println(h1.get(in.next()));
+			count++;
+
+		}
+		endTime = System.nanoTime();
+		duration = (endTime - startTime)/1000000;
+		System.out.println("Time to taken to get all strings from table after removing first 10 000 Strings: " + duration + " miliseconds. \n");
 		
+		//--------------------------------------------------------------------------------------------------
+		startTime = System.nanoTime();
+		try{
+			in = new Scanner(new FileInputStream("hash_test_file1.txt"));
+		}
+
+		catch(FileNotFoundException e){
+			System.out.println("Error");
+			System.exit(0);
+		}
+		
+		System.out.println("Enter any key to continue.");
+		kb.next();
+		
+		count = 0;
+		while(in.hasNext()){
+
+			if(count < 10000){
+				String value = in.next();
+				h1.put(value,value);
+
+			}
+			else
+				System.out.println(h1.get(in.next()));
+			count++;
+
+		}
+		endTime = System.nanoTime();
+		duration = (endTime - startTime)/1000000;
+		System.out.println("Time to taken to get all strings from table after removing first 10 000 Strings: " + duration + " miliseconds. \n");
 
 	}
 
