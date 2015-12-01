@@ -3,7 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 
-public class test3 {
+public class Driver {
 
 	public static void main(String[] args) {
 
@@ -24,10 +24,12 @@ public class test3 {
 
 		startTime = System.nanoTime();
 
-		FlexHash h1 = new FlexHash(101 , 'N',  'Q');
+		FlexHash h1 = new FlexHash(101 , 'A',  'Q');
 		int count = 0;
 
 		System.out.println("Text File 1 starting with table of size 101");
+		
+		//Begin by adding in specified intervals of 1000, 3000,5000,10000,50000,100000,150000,200000,~240000
 		while(in.hasNext()){
 			String word = in.next();
 
@@ -39,12 +41,9 @@ public class test3 {
 				h1.printHashtableStatistics();
 			}
 
-
-
 		}
 		System.out.println("Added all strings in textfile.");
 		h1.printHashtableStatistics();
-
 		endTime = System.nanoTime();
 
 		duration = (endTime - startTime)/1000000;
@@ -57,6 +56,7 @@ public class test3 {
 
 		
 		//--------------------------------------------------------------------------------------------------
+		//Remove first 10 000 strings than perform a full get operation.
 		startTime = System.nanoTime();
 		try{
 			in = new Scanner(new FileInputStream("hash_test_file1.txt"));
@@ -84,6 +84,7 @@ public class test3 {
 		System.out.println("Time to taken to get all strings from table after removing first 10 000 Strings: " + duration + " miliseconds. \n");
 		
 		//--------------------------------------------------------------------------------------------------
+		//Added first 10 000 strings than perform a full get operation.
 		startTime = System.nanoTime();
 		try{
 			in = new Scanner(new FileInputStream("hash_test_file1.txt"));
@@ -112,8 +113,8 @@ public class test3 {
 		}
 		endTime = System.nanoTime();
 		duration = (endTime - startTime)/1000000;
-		System.out.println("Time to taken to get all strings from table after removing first 10 000 Strings: " + duration + " miliseconds. \n");
-
+		System.out.println("Time to taken to get all strings from table after putting back first 10 000 Strings: " + duration + " miliseconds. \n");
+		h1.printHashtableStatistics();
 	}
 
 }

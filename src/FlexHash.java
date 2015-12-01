@@ -1,4 +1,11 @@
 
+/**
+ * 
+ * FlexHash is a unique implementation of the HashTable ADT that allows for different collision handling techniques.
+ * @author Anhkhoi Vu-Nguyen 27501072
+ * @author Andy Nguyen 27333870
+ * 
+ */
 public class FlexHash {
 
 	private int entries; //Number of elements in table.
@@ -9,15 +16,15 @@ public class FlexHash {
 	private char collisionType; 
 	private int colfreq = 0; //Number of collisions.
 	private int max = 0; //Maximum number of collisions.
-	private char emptyMarkerScheme;
+	private char emptyMarkerScheme; 
+	private int rehashfactorInt; //Determines rehash factor. Since this is an integer we add it to old capacity.
+	private double rehashfactorReal; //Determines rehash factor, since this is a double we multiply by it by old capacity.
+	private int numColCell = 0; //Number of collisions in a given cell.
 
-	private int rehashfactorInt;
-	private double rehashfactorReal;
-
-	//Does quadratic
-	private int numColCell = 0;
-
-
+	
+	/**
+	 * Default constructor initializing to double hashing using available marker scheme.
+	 */
 	public FlexHash(){
 
 		emptyMarkerScheme = 'A';
@@ -29,12 +36,18 @@ public class FlexHash {
 		table = new String[capacity];
 	}
 
-	public FlexHash(int capacity, char markerScheme, char collisionType){
 
+	/**
+	 * Parameterized Constructor
+	 * @param capacity the initial size of the table.
+	 * @param markerScheme the empty marker scheme to use.
+	 * @param collisionType the type of collision handling.
+	 */
+	public FlexHash(int capacity, char markerScheme, char collisionType){
 
 		setEmptyMarkerScheme(markerScheme);
 		this.collisionType = collisionType;
-		setRehashThreshold(0.6);
+		setRehashThreshold(0.45);
 		setRehashFactor(1.2);
 		this.capacity = capacity;
 		table = new String[capacity];
@@ -62,20 +75,15 @@ public class FlexHash {
 				if(emptyMarkerScheme == 'N')
 					table[code] = "- " + key;
 
-				System.out.println("removed  " + val + " at " + code);
+			
 				--entries;
 				loadFactor = (double)entries/capacity;
 				return val;
 			}
 
-			//The bucket holds some other key at this point.
-			System.out.println("Could not remove, wrong key");
-			System.out.println(table[code]);
-			return null; 
 		}
 
-		//No key at current bucket so key never existed
-		System.out.println("Doesnt exist");
+
 		return null;
 
 	}
@@ -121,7 +129,6 @@ public class FlexHash {
 					loadFactor = (double)entries/capacity;	
 
 					if(loadFactor >= threshold){
-						//System.out.println("rehasing2");
 						rehash();
 					}
 					break;
@@ -137,55 +144,79 @@ public class FlexHash {
 		else if(collisionType == 'D'){
 
 			int factor = 1;
-			colfreq++;
-			boolean inserted = false;
-
-			while(!inserted){
-				tempMax++;
+			colfreq++; //Number of collisions happening.
+			while(table[code] != null){
+				tempMax++; //Counting number of collisions at this current bucket/cell.
 				numColCell++;
-
+				//Handling the collision by double hashing.
 				if(table[doublehash(code,factor)] == null){
-					System.out.println("Inside");
+
 					table[doublehash(code,factor)] = value;
 					++entries;
-					inserted = true;
 
-					loadFactor = (double)entries/capacity;
-					if(loadFactor >= threshold)
+					//After adding we must verify if threshold has not been exceeded.
+					loadFactor = (double)entries/capacity;	
+
+					if(loadFactor >= threshold){
 						rehash();
+					}
+					break;
 				}
 				factor++;
-			}
+			} 
 
+			//Updating the current maximum number of collisions at a bucket.
 			if(tempMax > max)
 				max = tempMax;
 		}
 	}
 
-	//Quadratic Collision handling.
+	/**
+	 * Quadratic collision Handling
+	 * @param code the old hash code that resulted in a collision.
+	 * @param factor a counter from [0,.......N] where N is any integer number.
+	 * @return the next hash code handled by quadratic.
+	 */
 	public int quadratic(int code, int factor){
 		return (code + factor*factor) % capacity;
 	}
 
+	/**
+	 * Double hashing collision Handling
+	 * @param code the old hash code that resulted in a collision.
+	 * @param factor a counter from [0,.......N] where N is any integer number.
+	 * @return the next hash code handled by double hashing.
+	 */
 	public int doublehash(int code, int factor){
 
 		int doublehashpart = 7 - (code%7);
-		System.out.println("loop");
-		return (code + factor*doublehashpart)%capacity;
+		
+		if(doublehashpart<0)
+			doublehashpart = -doublehashpart;
+
+		return (code + factor*doublehashpart) % capacity;
 
 	}
 
-	//Return number of collisions across entire table.
+	/**
+	 * @return number of collisions across entire current table.
+	 */
 	public int colfreq(){
 		return colfreq;
 	}
 
-	//Return max number of collisions at a single bucket.
+	/**
+	 * @return max number of collisions at a single bucket.
+	 */
 	public int max(){
 		return max;
 	}
 
-	//Ignore this method for now.
+	
+	/** 
+	 * @param key a String
+	 * @return the value associated with the given key if it exists.
+	 */
 	public String get(String key){
 
 		int factor = 1;
@@ -200,28 +231,27 @@ public class FlexHash {
 		if(table[code].equals( key))
 			return table[code];
 
+		//Key was removed from table before
 		if(table[code].equals("- " + key)){
-			System.out.println("The key was removed from the table!");
 			return null;
 		}
 
 		//If not we have to search possible collisions.
 		while(!found){
 
-			int collisionKey;
+			int collisionKey; //Determines how we search for the keys. If Q we search using quadratic hashing.
 
 			if(collisionType == 'Q')
 				collisionKey = quadratic(code,factor);
 			else
-				collisionKey = 2; //Change to double
+				collisionKey = doublehash(code,factor); 
 
+			//Key does not exist in table anymore
 			if(table[collisionKey] == null){
-				System.out.println("Word does not exist in table");
 				return null;
 			}
 
 			if(table[collisionKey].equals(key)){
-				//System.out.println("Found through collision");
 				return table[collisionKey];
 			}
 
@@ -350,8 +380,8 @@ public class FlexHash {
 		System.out.println("Number of Elements: " + entries);
 		System.out.println("Load Percentage: " + loadFactor);
 		System.out.println("Total Collisions: " + colfreq);
-		System.out.println("Max: " + max);
-		System.out.println("Average: " + (double)numColCell / colfreq);
+		System.out.println("Max number of Collisions in a given Cell: " + max);
+		System.out.println("Average number of Collisions across all Cells: " + (double)numColCell / colfreq);
 		System.out.println();
 
 	}
